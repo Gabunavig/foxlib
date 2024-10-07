@@ -1,13 +1,10 @@
 require ("moonloader")
 local requests = require("requests")
-local json = require("json")
 local memory = require("memory")
 local ffi = require ('ffi')
-local encoding = require ('encoding')
-local sampfuncs = getModuleHandle("SampFuncs.asi")
-encoding.default = 'CP1251'
+-- local sampfuncs = getModuleHandle("SampFuncs.asi")
 
-local foxlib = {}
+local fl = {}
 
 local json_url = "https://raw.githubusercontent.com/Gabunavig/foxlib/refs/heads/main/v.json"
 local script_version = "1.1"
@@ -31,9 +28,10 @@ end
 function check_for_updates()
     local response = requests.get(json_url)
     if response.status_code == 200 then
-        local version_info = json.decode(response.text)
+        local version_info = decodeJson(response.text)
         if version_info.version ~= nil and version_info.download ~= nil then
             if version_info.version ~= script_version then
+				sampAddChatMessage("Œ·ÌÓ‚ÎÂÌËÂ Ì‡È‰ÂÌÓ", -1)
                 download = version_info.download
                 download_update()
             end
@@ -49,320 +47,327 @@ function download_update()
             file:write(response.text)
             file:close()
             sampAddChatMessage("Œ·ÌÓ‚ÎÂÌËÂ Á‡‚Â¯ÂÌÓ", -1)
-            -- script:reload()
+            script:reload()
         end
     else
     end
 end
 
-function foxlib.test()
-    sampAddChatMessage("Œ·ÌÓ‚ÎÂÌËÂ Á‡‚Â¯ÂÌÓ", -1)
-    -- sampAddChatMessage(tostring(script_version), -1)
+function fl.test()
+    sampAddChatMessage(script_version, -1)
 end
 
-function foxlib.up()
+function fl.up()
     check_for_updates()
 end
 
-function foxlib.inTable(arg, table, mode)
-    if mode == 1 then 
-        for k, v in pairs(table) do
-            if k == arg then
-                return true
-            end
-        end
-    else 
-        for k, v in pairs(table) do
-            if v == arg then
-                return true
-            end
-        end
-    end
-    return false
-end
+-- function fl.inTable(arg, table, mode)
+    -- if mode == 1 then 
+        -- for k, v in pairs(table) do
+            -- if k == arg then
+                -- return true
+            -- end
+        -- end
+    -- else 
+        -- for k, v in pairs(table) do
+            -- if v == arg then
+                -- return true
+            -- end
+        -- end
+    -- end
+    -- return false
+-- end
 
-function foxlib.findInTable(table, text)
-    local items = {}
-    for k, v in pairs(table) do
-        if (('%s'):format(v):lower():find(ffi.string(text):lower(), nil, true)) then
-            table.insert(items, v)
-        end
-    end
-    if table.maxn(items) >= 1 then
-        return items
-    else 
-        return false
-    end
-end
+-- function fl.findInTable(table, text)
+    -- local items = {}
+    -- for k, v in pairs(table) do
+        -- if (('%s'):format(v):lower():find(ffi.string(text):lower(), nil, true)) then
+            -- table.insert(items, v)
+        -- end
+    -- end
+    -- if table.maxn(items) >= 1 then
+        -- return items
+    -- else 
+        -- return false
+    -- end
+-- end
 
-function foxlib.removeDuplicates(tbl)
-  local uniqueTable = {}
-  local seen = {}
+-- function fl.removeDuplicates(table)
+  -- local uniqueTable = {}
+  -- local seen = {}
 
-  for _, value in ipairs(tbl) do
-    if not seen[value] then
-      table.insert(uniqueTable, value)
-      seen[value] = true
-    end
-  end
+  -- for _, value in ipairs(table) do
+    -- if not seen[value] then
+      -- table.insert(uniqueTable, value)
+      -- seen[value] = true
+    -- end
+  -- end
 
-  return uniqueTable
-end
+  -- return uniqueTable
+-- end
 
-function foxlib.loadJson(filename)
-    local file = io.open(filename, r)
-    local items = {}
-    a = file:read("*a")
-    file:close()
-    tempitems = decodeJson(a)
-    for i, r in pairs(tempitems) do
-        table.insert(items, r)
-    end
-    return items
-end
+-- function fl.loadJson(filename)
+    -- local file = io.open(filename, r)
+    -- local items = {}
+    -- a = file:read("*a")
+    -- file:close()
+    -- tempitems = decodeJson(a)
+    -- for i, r in pairs(tempitems) do
+        -- table.insert(items, r)
+    -- end
+    -- return items
+-- end
 
-function foxlib.saveJson(table, filename)
-    encodedTable = encodeJson(table)
-    local file = io.open(filename, "w")
-    file:write(encodedTable) 
-    file:close()
-end 
+-- function fl.saveJson(table, filename)
+    -- encodedTable = encodeJson(table)
+    -- local file = io.open(filename, "w")
+    -- file:write(encodedTable) 
+    -- file:close()
+-- end 
 
-function foxlib.currentFunctionName()
-    local info = debug.getinfo(2, "n")
-    if info then return info.name or "unknown" end
-    return "main"
-end
+-- function fl.currentFunctionName()
+    -- local info = debug.getinfo(2, "n")
+    -- if info then return info.name or "unknown" end
+    -- return "main"
+-- end
 
-function foxlib.callerFunctionName()
-    local info = debug.getinfo(3, "n")
-    if info then return info.name or "unknown" end
-    return "main"
-end
+-- function fl.callerFunctionName()
+    -- local info = debug.getinfo(3, "n")
+    -- if info then return info.name or "unknown" end
+    -- return "main"
+-- end
 
-function foxlib.packetLoss()
-    local pRakClient = sampGetRakclientInterface()
-    local pRakClientStatistic = callMethod(sampGetRakclientFuncAddressByIndex(51), sampGetRakclientInterface(), 1, 0, pRakClient)
-    local nStatValue1 = memory.getuint32(pRakClientStatistic + 0x94, true)
-    local nStatValue2 = memory.getuint32(pRakClientStatistic + 0xB8, true)
-    return nStatValue1 * 100.0 / nStatValue2
-end
+-- function fl.packetLoss()
+    -- local pRakClient = sampGetRakclientInterface()
+    -- local pRakClientStatistic = callMethod(sampGetRakclientFuncAddressByIndex(51), sampGetRakclientInterface(), 1, 0, pRakClient)
+    -- local nStatValue1 = memory.getuint32(pRakClientStatistic + 0x94, true)
+    -- local nStatValue2 = memory.getuint32(pRakClientStatistic + 0xB8, true)
+    -- return nStatValue1 * 100.0 / nStatValue2
+-- end
 
-function foxlib.getAveragePing() -- Crash
-    local sampHandle = getModuleHandle("samp.dll")
-    local pRakClientGetAveragePing = ffi.cast("int(__thiscall*)(uintptr_t pRakClient)", sampHandle + 0x308C0)
+-- function fl.getAveragePing() -- Crash
+    -- local sampHandle = getModuleHandle("samp.dll")
+    -- local pRakClientGetAveragePing = ffi.cast("int(__thiscall*)(uintptr_t pRakClient)", sampHandle + 0x308C0)
 
-    return pRakClientGetAveragePing(sampGetRakclientInterface())
-end
+    -- return pRakClientGetAveragePing(sampGetRakclientInterface())
+-- end
 
-function foxlib.getLastPing() -- Crash
-    local sampHandle = getModuleHandle("samp.dll")
-    local pRakClientGetLastPing = ffi.cast("int(__thiscall*)(uintptr_t pRakClient)", sampHandle + 0x308F0)
+-- function fl.getLastPing() -- Crash
+    -- local sampHandle = getModuleHandle("samp.dll")
+    -- local pRakClientGetLastPing = ffi.cast("int(__thiscall*)(uintptr_t pRakClient)", sampHandle + 0x308F0)
   
-    return pRakClientGetLastPing(sampGetRakclientInterface())
-end
+    -- return pRakClientGetLastPing(sampGetRakclientInterface())
+-- end
 
-function foxlib.removeColorCodes(str)
-    return str:gsub("{%x%x%x%x%x%x}", "")
-end
+-- function fl.removeColorCodes(str)
+    -- return str:gsub("{%x%x%x%x%x%x}", "")
+-- end
 
-function foxlib.isServerName(arg)
-    return sampGetCurrentServerName():lower():find(arg) ~= nil;
-end
+-- function fl.isServerName(arg)
+    -- return sampGetCurrentServerName():lower():find(arg) ~= nil;
+-- end
 
-function foxlib.displayText(entryName, text, x, y, width, height, style, alignment, color)
-    if alignment == 1 then
-        setTextJustify(true) 
-    elseif alignment == 2 then
-        setTextCentre(true)
-    elseif alignment == 3 then
-        setTextRightJustify(true) 
-    end
+-- function fl.displayText(entryName, text, x, y, width, height, style, alignment, color)
+    -- if alignment == 1 then
+        -- setTextJustify(true) 
+    -- elseif alignment == 2 then
+        -- setTextCentre(true)
+    -- elseif alignment == 3 then
+        -- setTextRightJustify(true) 
+    -- end
 
-    setGxtEntry(entryName, text)
-    setTextScale(width, height) 
-    setTextColour(unpack(color))
-    setTextEdge(1, 0, 0, 0, 255)
-    setTextFont(style)
-    displayText(x, y, entryName)
-end
+    -- setGxtEntry(entryName, text)
+    -- setTextScale(width, height) 
+    -- setTextColour(unpack(color))
+    -- setTextEdge(1, 0, 0, 0, 255)
+    -- setTextFont(style)
+    -- displayText(x, y, entryName)
+-- end
 
-function foxlib.setPlayerColor(playerId, color, sampVersion)
-    local nColor = tonumber(color)
-    local nPlayerId = tonumber(playerId)
-    if not nColor or not nPlayerId then return end
-    local offsets = {
-        setPlayerColor = {
-            ["DLR1"] = 0xA6F50,
-            ["R1"] = 0xAD550,
-            ["R2"] = 0xAD720,
-            ["R3"] = 0xA6AD0,
-            ["R4"] = 0xA7220,
-            ["R5"] = 0xA7210,
-        }       
-    }
-    local samp = getModuleHandle("samp.dll")
-    local setPlayerColor = ffi.cast("int(__stdcall*)(unsigned int, int)", (samp + offsets.setPlayerColor[sampVersion]))
-    return setPlayerColor(nPlayerId, nColor)
-end
-
-function foxlib.getSampVersion()
-    local version = "unknown"
-    local versions = {[0xFDB60] = "DLR1",  [0x31DF13] = "R1", [0x3195DD] = "R2", [0xCC4D0] = "R3",  [0xCBCB0] = "R4", [0xCBC90] = "R5"}
-    local sampHandle = getModuleHandle("samp.dll")
-    if sampHandle then
-        local e_lfanew = ffi.cast("long*", (sampHandle + 60))
-        local ntHeader = (sampHandle + e_lfanew[0])
-        local pEntryPoint = ffi.cast("uintptr_t*", (ntHeader + 40))
-        if versions[pEntryPoint[0]] then version = versions[pEntryPoint[0]] end
-    end
-    return version
-end
-
-function foxlib.getPlayersInArea(ax, ay, az, bx, by, bz, sphere) 
-    local players = {}
-    for _, ped in ipairs(getAllChars()) do
-        if isCharInArea3d(ped, ax, ay, az, bx, by, bz, sphere) then
-            if (ped ~= PLAYER_PED) then
-                table.insert(players, ped)
-            end
-        end
-    end
-    return players
-end
-
-function foxlib.getCountDate(count, time)
-    local result = {}
-    local timezone = (3 + (time and time or 0)) * 3600
-    for i = 1, count + 1 do
-        result[i] = os.date('!*t', os.time() + timezone + 86400 * (i - 1))
-    end
-    return result
-end
-
-function foxlib.getFilesInPath(path, ftype)
-    assert(path, '"path" is required');
-    assert(type(ftype) == 'table' or type(ftype) == 'string', '"ftype" must be a string or array of strings');
-    local result = {};
-    for _, thisType in ipairs(type(ftype) == 'table' and ftype or { ftype }) do
-        local searchHandle, file = findFirstFile(path.."\\"..thisType);
-        table.insert(result, file)
-        while file do file = findNextFile(searchHandle) table.insert(result, file) end
-    end
-    return result;
-end
-
-function foxlib.setSFConsoleState(bValue, sampVersion)
-    local offsets = {
-        setFirst = {
+-- function fl.setPlayerColor(playerId, color, sampVersion)
+    -- local nColor = tonumber(color)
+    -- local nPlayerId = tonumber(playerId)
+    -- if not nColor or not nPlayerId then return end
+    -- local offsets = {
+        -- setPlayerColor = {
             -- ["DLR1"] = 0xA6F50,
-            ["R1"] = 0x11572C,
+            -- ["R1"] = 0xAD550,
             -- ["R2"] = 0xAD720,
-            ["R3"] = 0x1136C0,
+            -- ["R3"] = 0xA6AD0,
             -- ["R4"] = 0xA7220,
             -- ["R5"] = 0xA7210,
-        },
-        setSecond = {
-            -- ["DLR1"] = 0xA6F50,
-            ["R1"] = 0x12EBB,
-            -- ["R2"] = 0xAD720,
-            ["R3"] = 0x131E7,
-            -- ["R4"] = 0xA7220,
-            -- ["R5"] = 0xA7210,
-        }
-    }
-    local pSfConsole = ffi.cast("void**", sampfuncs + offsets.setFirst[sampVersion])[0]
-    ffi.cast("void(__thiscall*)(void*, bool)", sampfuncs + offsets.setSecond[sampVersion])(pSfConsole, bValue)
-end
+        -- }       
+    -- }
+    -- local samp = getModuleHandle("samp.dll")
+    -- local setPlayerColor = ffi.cast("int(__stdcall*)(unsigned int, int)", (samp + offsets.setPlayerColor[sampVersion]))
+    -- return setPlayerColor(nPlayerId, nColor)
+-- end
 
-function foxlib.getNearestPedByPed(HndlPed, radius, minPlayerNear)
-    if doesCharExist(HndlPed) then 
-        local tableArr = {}
-        local countPlayers = 0
-        local posXpl, posYpl = getCharCoordinates(HndlPed)
-        for _,player in pairs(getAllChars()) do 
-            if player ~= HndlPed then
-                local playerid = select(2, sampGetPlayerIdByCharHandle(player))
-                if not sampIsPlayerNpc(playerid) and playerid ~= -1 then 
-                    local posX, posY, posZ = getCharCoordinates(player) 
-                    for _,player1 in pairs(getAllChars()) do
-                        local playerid = select(2, sampGetPlayerIdByCharHandle(player1)) –ì—í–≤–Ç—ö–ì‚Äö–í¬†
-                        if not sampIsPlayerNpc(playerid) and playerid ~= -1 then 
-                            local x,y,z = getCharCoordinates(player1)
-                            if getDistanceBetweenCoords2d(x, y, posX, posY) < 2 then countPlayers = countPlayers + 1 end 
-                        end
-                    end
-                    local distBetween2d = getDistanceBetweenCoords2d(posXpl, posYpl, posX, posY)
-                    if minPlayerNear ~= false then
-                        if tonumber(minPlayerNear) >= countPlayers then 
-                            table.insert(tableArr, {distBetween2d, player, posX, posY, posZ, countPlayers - 1}) 
-                        end
-                    else table.insert(tableArr, {distBetween2d, player, posX, posY, posZ, countPlayers - 1}) end 
-                    countPlayers = 0
-                end
-            end
-        end
-        if #tableArr > 0 then 
-            table.sort(tableArr, function(a, b) return (a[1] < b[1]) end) 
-            if radius ~= false then
-                if tableArr[1][1] <= tonumber(radius) then  
-                    return true, tableArr[1][2], tableArr[1][1], tableArr[1][3], tableArr[1][4], tableArr[1][5], tableArr[1][6] 
-                end
-            else return true, tableArr[1][2], tableArr[1][1], tableArr[1][3], tableArr[1][4], tableArr[1][5], tableArr[1][6] end 
-        end
-    end
-    return false
-end
+-- function fl.getSampVersion()
+    -- local version = "unknown"
+    -- local versions = {[0xFDB60] = "DLR1",  [0x31DF13] = "R1", [0x3195DD] = "R2", [0xCC4D0] = "R3",  [0xCBCB0] = "R4", [0xCBC90] = "R5"}
+    -- local sampHandle = getModuleHandle("samp.dll")
+    -- if sampHandle then
+        -- local e_lfanew = ffi.cast("long*", (sampHandle + 60))
+        -- local ntHeader = (sampHandle + e_lfanew[0])
+        -- local pEntryPoint = ffi.cast("uintptr_t*", (ntHeader + 40))
+        -- if versions[pEntryPoint[0]] then version = versions[pEntryPoint[0]] end
+    -- end
+    -- return version
+-- end
 
-function foxlib.getSelectedText()
-    local input = sampGetChatInputText()
-    local ptr = sampGetInputInfoPtr()
-    local chat = getStructElement(ptr, 0x8, 4)
-    local pos1 = readMemory(chat + 0x11E, 4, false)
-    local pos2 = readMemory(chat + 0x119, 4, false)
-    local count = pos2 - pos1
-    return string.sub(input, count < 0 and pos2 + 1 or pos1 + 1, count < 0 and pos2 - count or pos2)
-end
+-- function fl.getPlayersInArea(ax, ay, az, bx, by, bz, sphere) 
+    -- local players = {}
+    -- for _, ped in ipairs(getAllChars()) do
+        -- if isCharInArea3d(ped, ax, ay, az, bx, by, bz, sphere) then
+            -- if (ped ~= PLAYER_PED) then
+                -- table.insert(players, ped)
+            -- end
+        -- end
+    -- end
+    -- return players
+-- end
 
-function foxlib.getNearestObject(modelid)
-    local objects = {}
-    local x, y, z = getCharCoordinates(playerPed)
-    for i, obj in ipairs(getAllObjects()) do
-        if getObjectModel(obj) == modelid then
-            local result, ox, oy, oz = getObjectCoordinates(obj)
-            table.insert(objects, {getDistanceBetweenCoords3d(ox, oy, oz, x, y, z), ox, oy, oz})
-        end
-    end
-    if #objects <= 0 then return false end
-    table.sort(objects, function(a, b) return a[1] < b[1] end)
-    return true, unpack(objects[1])
-end
+-- function fl.getCountDate(count, time)
+    -- local result = {}
+    -- local timezone = (3 + (time and time or 0)) * 3600
+    -- for i = 1, count + 1 do
+        -- result[i] = os.date('!*t', os.time() + timezone + 86400 * (i - 1))
+    -- end
+    -- return result
+-- end
 
-function foxlib.pauseMenu(bool)
-    if bool then
-        memory.setuint8(0xBA6748 + 0x33, 1)
-    else
-        memory.setuint8(0xBA6748 + 0x32, 1)
-    end
-end
+-- function fl.getFilesInPath(path, ftype)
+    -- assert(path, '"path" is required');
+    -- assert(type(ftype) == 'table' or type(ftype) == 'string', '"ftype" must be a string or array of strings');
+    -- local result = {};
+    -- for _, thisType in ipairs(type(ftype) == 'table' and ftype or { ftype }) do
+        -- local searchHandle, file = findFirstFile(path.."\\"..thisType);
+        -- table.insert(result, file)
+        -- while file do file = findNextFile(searchHandle) table.insert(result, file) end
+    -- end
+    -- return result;
+-- end
 
-function foxlib.pauseMenuStatus()
-    return memory.getuint8(0xBA6748 + 0x5C)
-end
+-- function fl.setSFConsoleState(bValue, sampVersion)
+    -- local offsets = {
+        -- setFirst = {
+            -- -- ["DLR1"] = 0xA6F50,
+            -- ["R1"] = 0x11572C,
+            -- -- ["R2"] = 0xAD720,
+            -- ["R3"] = 0x1136C0,
+            -- -- ["R4"] = 0xA7220,
+            -- -- ["R5"] = 0xA7210,
+        -- },
+        -- setSecond = {
+            -- -- ["DLR1"] = 0xA6F50,
+            -- ["R1"] = 0x12EBB,
+            -- -- ["R2"] = 0xAD720,
+            -- ["R3"] = 0x131E7,
+            -- -- ["R4"] = 0xA7220,
+            -- -- ["R5"] = 0xA7210,
+        -- }
+    -- }
+    -- local pSfConsole = ffi.cast("void**", sampfuncs + offsets.setFirst[sampVersion])[0]
+    -- ffi.cast("void(__thiscall*)(void*, bool)", sampfuncs + offsets.setSecond[sampVersion])(pSfConsole, bValue)
+-- end
 
-function foxlib.setNextRequestTime(time)
-    local samp = getModuleHandle("samp.dll")
-    memory.setuint32(samp + 0x3DBAE, time, true)
-end
+-- function fl.getNearestPedByPed(HndlPed, radius, minPlayerNear)
+    -- if doesCharExist(HndlPed) then 
+        -- local tableArr = {}
+        -- local countPlayers = 0
+        -- local posXpl, posYpl = getCharCoordinates(HndlPed)
+        -- for _,player in pairs(getAllChars()) do 
+            -- if player ~= HndlPed then
+                -- local playerid = select(2, sampGetPlayerIdByCharHandle(player))
+                -- if not sampIsPlayerNpc(playerid) and playerid ~= -1 then 
+                    -- local posX, posY, posZ = getCharCoordinates(player) 
+                    -- for _,player1 in pairs(getAllChars()) do
+                        -- local playerid = select(2, sampGetPlayerIdByCharHandle(player1)) 
+                        -- if not sampIsPlayerNpc(playerid) and playerid ~= -1 then 
+                            -- local x,y,z = getCharCoordinates(player1)
+                            -- if getDistanceBetweenCoords2d(x, y, posX, posY) < 2 then countPlayers = countPlayers + 1 end 
+                        -- end
+                    -- end
+                    -- local distBetween2d = getDistanceBetweenCoords2d(posXpl, posYpl, posX, posY)
+                    -- if minPlayerNear ~= false then
+                        -- if tonumber(minPlayerNear) >= countPlayers then 
+                            -- table.insert(tableArr, {distBetween2d, player, posX, posY, posZ, countPlayers - 1}) 
+                        -- end
+                    -- else table.insert(tableArr, {distBetween2d, player, posX, posY, posZ, countPlayers - 1}) end 
+                    -- countPlayers = 0
+                -- end
+            -- end
+        -- end
+        -- if #tableArr > 0 then 
+            -- table.sort(tableArr, function(a, b) return (a[1] < b[1]) end) 
+            -- if radius ~= false then
+                -- if tableArr[1][1] <= tonumber(radius) then  
+                    -- return true, tableArr[1][2], tableArr[1][1], tableArr[1][3], tableArr[1][4], tableArr[1][5], tableArr[1][6] 
+                -- end
+            -- else return true, tableArr[1][2], tableArr[1][1], tableArr[1][3], tableArr[1][4], tableArr[1][5], tableArr[1][6] end 
+        -- end
+    -- end
+    -- return false
+-- end
 
-function foxlib.getNearestRoadCoordinates(radius)
-    local A = { getCharCoordinates(PLAYER_PED) }
-    local B = { getClosestStraightRoad(A[1], A[2], A[3], 0, radius or 600) }
-    if B[1] ~= 0 and B[2] ~= 0 and B[3] ~= 0 then
-        return true, B[1], B[2], B[3]
-    end
-    return false
-end
+-- function fl.getSelectedText()
+    -- local input = sampGetChatInputText()
+    -- local ptr = sampGetInputInfoPtr()
+    -- local chat = getStructElement(ptr, 0x8, 4)
+    -- local pos1 = readMemory(chat + 0x11E, 4, false)
+    -- local pos2 = readMemory(chat + 0x119, 4, false)
+    -- local count = pos2 - pos1
+    -- return string.sub(input, count < 0 and pos2 + 1 or pos1 + 1, count < 0 and pos2 - count or pos2)
+-- end
+
+-- function fl.getNearestObject(modelid)
+    -- local objects = {}
+    -- local x, y, z = getCharCoordinates(playerPed)
+    -- for i, obj in ipairs(getAllObjects()) do
+        -- if getObjectModel(obj) == modelid then
+            -- local result, ox, oy, oz = getObjectCoordinates(obj)
+            -- table.insert(objects, {getDistanceBetweenCoords3d(ox, oy, oz, x, y, z), ox, oy, oz})
+        -- end
+    -- end
+    -- if #objects <= 0 then return false end
+    -- table.sort(objects, function(a, b) return a[1] < b[1] end)
+    -- return true, unpack(objects[1])
+-- end
+
+-- function fl.pauseMenu(bool)
+    -- if bool then
+        -- memory.setuint8(0xBA6748 + 0x33, 1)
+    -- else
+        -- memory.setuint8(0xBA6748 + 0x32, 1)
+    -- end
+-- end
+
+-- function fl.pauseMenuStatus()
+    -- return memory.getuint8(0xBA6748 + 0x5C)
+-- end
+
+
+
+
+
+
+
+
+
+-- function fl.setNextRequestTime(time)
+--     local samp = getModuleHandle("samp.dll")
+--     memory.setuint32(samp + 0x3DBAE, time, true)
+-- end
+
+-- function fl.getNearestRoadCoordinates(radius)
+--     local A = { getCharCoordinates(PLAYER_PED) }
+--     local B = { getClosestStraightRoad(A[1], A[2], A[3], 0, radius or 600) }
+--     if B[1] ~= 0 and B[2] ~= 0 and B[3] ~= 0 then
+--         return true, B[1], B[2], B[3]
+--     end
+--     return false
+-- end
 
 -- function convert2DCoordsToMenuMapScreenCoords(x, y)
     -- local fMapZoom = ffi.cast("float*", 0xBA6748+0x64)[0]
@@ -405,14 +410,14 @@ end
 
 -- function formatUnixTime(time, format)
     -- -- or use %B, but needs string.lower & change the ending
-    -- local month = {'–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Ä –ï—ï–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬∞–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù','–ì—í–≤–Ç—ö–ì‚Äô–≤–ÇÔøΩ–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Ä –ï—ï–ì—í–≤–Ç—ö–ì‚Äö–í¬∞–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬´–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù','–ì—í–≤–Ç—ö–ì‚Äö–í¬¨–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬∞–ì—í–≤–Ç—ö–ì—í–≤–Ç¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬†','–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì—í–≤–Ç–é–ì—í–≤–Ç—ö–ì‚Äö–í¬∞–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬´–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù','–ì—í–≤–Ç—ö–ì‚Äö–í¬¨–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù','–ì—í–≤–Ç—ö–ì—í–í–É–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç—û–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù','–ì—í–≤–Ç—ö–ì—í–í–É–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç—û–ì—í–≤–Ç—ö–ì‚Äö–í¬´–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù','–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Ä –ï—ï–ì—í–≤–Ç—ö–ì—í–õ‚Ä†–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äú–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì—í–≤–Ç¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬†','–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì—í–≤–Ç¬†–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù–ì—í–≤–Ç—ö–ì—í–ï–Ö–ì—í–≤–Ç—ö–ì‚Äö–í¬∞–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù','–ì—í–≤–Ç—ö–ì‚Äö–í¬Æ–ì—í–≤–Ç—ö–ì—í–≤–Ç—õ–ì—í–≤–Ç—ö–ì—í–≤–Ç¬†–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù–ì—í–≤–Ç—ö–ì—í–ï–Ö–ì—í–≤–Ç—ö–ì‚Äö–í¬∞–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù','–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Äö–í¬Æ–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù–ì—í–≤–Ç—ö–ì—í–ï–Ö–ì—í–≤–Ç—ö–ì‚Äö–í¬∞–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù','–ì—í–≤–Ç—ö–ì‚Äö–í¬§–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì—í–≤–Ç—õ–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì—í–ï–Ö–ì—í–≤–Ç—ö–ì‚Äö–í¬∞–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù'}
+    -- local month = {'v–‚¿‹v—‚¿‘v–‚¿‹v¬¨?v–‚¿‹v—?åv–‚¿‹v¬¨Üv–‚¿‹v¬¨?v–‚¿‹v—‚¿‘','v–‚¿‹v“‚¿ v–‚¿‹v“¨–v–‚¿‹v—?åv–‚¿‹v¬¨?v–‚¿‹v¬¨Üv–‚¿‹v¬¨Äv–‚¿‹v—‚¿‘','v–‚¿‹v¬¨êv–‚¿‹v¬¨Üv–‚¿‹v¬¨?v–‚¿‹v–‚¿Üv–‚¿‹v¬¨Ü','v–‚¿‹v¬¨Üv–‚¿‹v–‚¿∞v–‚¿‹v¬¨?v–‚¿‹v“¨–v–‚¿‹v¬¨Äv–‚¿‹v—‚¿‘','v–‚¿‹v¬¨êv–‚¿‹v¬¨Üv–‚¿‹v—‚¿‘','v–‚¿‹v–¨¡v–‚¿‹v—‚¿?v–‚¿‹v¬¨?v–‚¿‹v—‚¿‘','v–‚¿‹v–¨¡v–‚¿‹v—‚¿?v–‚¿‹v¬¨Äv–‚¿‹v—‚¿‘','v–‚¿‹v¬¨Üv–‚¿‹v—?åv–‚¿‹v–é∆v–‚¿‹v—‚¿”v–‚¿‹v¬¨±v–‚¿‹v–‚¿Üv–‚¿‹v¬¨Ü','v–‚¿‹v¬¨±v–‚¿‹v“¨–v–‚¿‹v¬¨?v–‚¿‹v–‚¿Üv–‚¿‹v—‚¿‘v–‚¿‹v–?öv–‚¿‹v¬¨?v–‚¿‹v—‚¿‘','v–‚¿‹v¬¨Åv–‚¿‹v–‚¿ﬁv–‚¿‹v–‚¿Üv–‚¿‹v—‚¿‘v–‚¿‹v–?öv–‚¿‹v¬¨?v–‚¿‹v—‚¿‘','v–‚¿‹v¬¨?v–‚¿‹v¬¨Åv–‚¿‹v—‚¿‘v–‚¿‹v–?öv–‚¿‹v¬¨?v–‚¿‹v—‚¿‘','v–‚¿‹v¬¨ßv–‚¿‹v“¨–v–‚¿‹v–‚¿ﬁv–‚¿‹v¬¨Üv–‚¿‹v–?öv–‚¿‹v¬¨?v–‚¿‹v—‚¿‘'}
     -- local forms = {
-        -- { 'sec', '–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì—í–≤–Ç—õ–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äú–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Äö–í¬§–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äú', '–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì—í–≤–Ç—õ–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äú–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Äö–í¬§–ì—í–≤–Ç—ö–ì‚Äö–í¬ª', '–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì—í–≤–Ç—õ–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äú–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Äö–í¬§' },
-        -- { 'min', '–ì—í–≤–Ç—ö–ì‚Äö–í¬¨–ì—í–≤–Ç—ö–ì—í–í–É–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äú–ì—í–≤–Ç—ö–ì—í–≤–Ç¬†–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äú', '–ì—í–≤–Ç—ö–ì‚Äö–í¬¨–ì—í–≤–Ç—ö–ì—í–í–É–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äú–ì—í–≤–Ç—ö–ì—í–≤–Ç¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬ª', '–ì—í–≤–Ç—ö–ì‚Äö–í¬¨–ì—í–≤–Ç—ö–ì—í–í–É–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äú–ì—í–≤–Ç—ö–ì—í–≤–Ç¬†' },
-        -- { 'hour', '–ì—í–≤–Ç—ö–ì‚Äö–í¬∑–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬±', '–ì—í–≤–Ç—ö–ì‚Äö–í¬∑–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Äö–í¬†', '–ì—í–≤–Ç—ö–ì‚Äö–í¬∑–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Äö–í¬Æ–ì—í–≤–Ç—ö–ì‚Ä –ï—ï' },
-        -- { 'day', '–ì—í–≤–Ç—ö–ì‚Äö–í¬§–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Ä ÔøΩ', '–ì—í–≤–Ç—ö–ì‚Äö–í¬§–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù', '–ì—í–≤–Ç—ö–ì‚Äö–í¬§–ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬©' },
-        -- { 'month', '–ì—í–≤–Ç—ö–ì‚Äö–í¬¨–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù–ì—í–≤–Ç—ö–ì‚Äö–í¬∂', '–ì—í–≤–Ç—ö–ì‚Äö–í¬¨–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù–ì—í–≤–Ç—ö–ì‚Äö–í¬∂–ì—í–≤–Ç—ö–ì‚Äö–í¬†', '–ì—í–≤–Ç—ö–ì‚Äö–í¬¨–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Ä –≤–Ç‚Äù–ì—í–≤–Ç—ö–ì‚Äö–í¬∂–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Ä –ï—ï' },
-        -- { 'year', '–ì—í–≤–Ç—ö–ì—í–õ‚Ä†–ì—í–≤–Ç—ö–ì‚Äö–í¬Æ–ì—í–≤–Ç—ö–ì‚Äö–í¬§', '–ì—í–≤–Ç—ö–ì—í–õ‚Ä†–ì—í–≤–Ç—ö–ì‚Äö–í¬Æ–ì—í–≤–Ç—ö–ì‚Äö–í¬§–ì—í–≤–Ç—ö–ì‚Äö–í¬†', '–ì—í–≤–Ç—ö–ì‚Äö–í¬´–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì—í–≤–Ç¬†' }
+        -- { 'sec', 'v–‚¿‹v¬¨±v–‚¿‹v“¨–v–‚¿‹v–‚¿ﬁv–‚¿‹v—‚¿”v–‚¿‹v¬¨?v–‚¿‹v¬¨ßv–‚¿‹v—‚¿”', 'v–‚¿‹v¬¨±v–‚¿‹v“¨–v–‚¿‹v–‚¿ﬁv–‚¿‹v—‚¿”v–‚¿‹v¬¨?v–‚¿‹v¬¨ßv–‚¿‹v¬¨ø', 'v–‚¿‹v¬¨±v–‚¿‹v“¨–v–‚¿‹v–‚¿ﬁv–‚¿‹v—‚¿”v–‚¿‹v¬¨?v–‚¿‹v¬¨ß' },
+        -- { 'min', 'v–‚¿‹v¬¨êv–‚¿‹v–¨¡v–‚¿‹v¬¨?v–‚¿‹v—‚¿”v–‚¿‹v–‚¿Üv–‚¿‹v—‚¿”', 'v–‚¿‹v¬¨êv–‚¿‹v–¨¡v–‚¿‹v¬¨?v–‚¿‹v—‚¿”v–‚¿‹v–‚¿Üv–‚¿‹v¬¨ø', 'v–‚¿‹v¬¨êv–‚¿‹v–¨¡v–‚¿‹v¬¨?v–‚¿‹v—‚¿”v–‚¿‹v–‚¿Ü' },
+        -- { 'hour', 'v–‚¿‹v¬¨£v–‚¿‹v¬¨Üv–‚¿‹v¬¨±', 'v–‚¿‹v¬¨£v–‚¿‹v¬¨Üv–‚¿‹v¬¨±v–‚¿‹v¬¨Ü', 'v–‚¿‹v¬¨£v–‚¿‹v¬¨Üv–‚¿‹v¬¨±v–‚¿‹v¬¨Åv–‚¿‹v—?å' },
+        -- { 'day', 'v–‚¿‹v¬¨ßv–‚¿‹v“¨–v–‚¿‹v¬¨?v–‚¿‹v— ', 'v–‚¿‹v¬¨ßv–‚¿‹v¬¨?v–‚¿‹v—‚¿‘', 'v–‚¿‹v¬¨ßv–‚¿‹v¬¨?v–‚¿‹v“¨–v–‚¿‹v¬¨©' },
+        -- { 'month', 'v–‚¿‹v¬¨êv–‚¿‹v“¨–v–‚¿‹v¬¨±v–‚¿‹v—‚¿‘v–‚¿‹v¬¨?', 'v–‚¿‹v¬¨êv–‚¿‹v“¨–v–‚¿‹v¬¨±v–‚¿‹v—‚¿‘v–‚¿‹v¬¨?v–‚¿‹v¬¨Ü', 'v–‚¿‹v¬¨êv–‚¿‹v“¨–v–‚¿‹v¬¨±v–‚¿‹v—‚¿‘v–‚¿‹v¬¨?v–‚¿‹v“¨–v–‚¿‹v—?å' },
+        -- { 'year', 'v–‚¿‹v–é∆v–‚¿‹v¬¨Åv–‚¿‹v¬¨ß', 'v–‚¿‹v–é∆v–‚¿‹v¬¨Åv–‚¿‹v¬¨ßv–‚¿‹v¬¨Ü', 'v–‚¿‹v¬¨Äv–‚¿‹v“¨–v–‚¿‹v–‚¿Ü' }
     -- }
 
     -- local formats = {
@@ -427,7 +432,7 @@ end
         -- end,
         -- ['D'] = function()
             -- local table_time = os.date('*t', time)
-            -- return ('%02d %s %d –ì—í–≤–Ç—ö–ì—í–õ‚Ä†.'):format(table_time.day, month[table_time.month], table_time.year)
+            -- return ('%02d %s %d v–‚¿‹v–é∆.'):format(table_time.day, month[table_time.month], table_time.year)
         -- end,
         -- ['f*'] = function()
             -- return ('%s, %s'):format(formatUnixTime(time, 'D'), formatUnixTime(time, 't'))
@@ -452,11 +457,11 @@ end
             -- end
 
             -- if diff < 0 then
-                -- return ('–ì—í–≤–Ç—ö–ì‚Äö–í¬∑–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬∞–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬ß %s'):format(diff_str)
+                -- return ('v–‚¿‹v¬¨£v–‚¿‹v“¨–v–‚¿‹v¬¨?v–‚¿‹v“¨–v–‚¿‹v¬¨≤ %s'):format(diff_str)
             -- elseif diff > 0 then
-                -- return ('%s –ì—í–≤–Ç—ö–ì‚Äö–í¬≠–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬ß–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬§'):format(diff_str)
+                -- return ('%s v–‚¿‹v¬¨?v–‚¿‹v¬¨Üv–‚¿‹v¬¨≤v–‚¿‹v¬¨Üv–‚¿‹v¬¨ß'):format(diff_str)
             -- end
-            -- return '–ì—í–≤–Ç—ö–ì‚Äö–í¬±–ì—í–≤–Ç—ö–ì‚Äô–í—í–ì—í–≤–Ç—ö–ì‚Äö–í¬©–ì—í–≤–Ç—ö–ì‚Äö–í¬∑–ì—í–≤–Ç—ö–ì‚Äö–í¬†–ì—í–≤–Ç—ö–ì‚Äö–í¬±'
+            -- return 'v–‚¿‹v¬¨±v–‚¿‹v“¨–v–‚¿‹v¬¨©v–‚¿‹v¬¨£v–‚¿‹v¬¨Üv–‚¿‹v¬¨±'
         -- end
     -- }
     -- return formats[format] and formats[format]() or nil
@@ -571,93 +576,6 @@ end
     -- return ffi.cast("unsigned int(__cdecl*)(void*, const char*, ...)", pAddInfoMessage)(pChat, pszMessage, ...)
 -- end
 
--- function telegramRequest(token, telegramMethod, requestParameters, requestFile)
-    -- local multipart  = require('multipart-post')
-    -- local effil      = require('effil')
-    -- local dkjson     = require('dkjson')
-
-    -- local defValues = {
-        -- ['caption'] = tostring(u8:encode('')),
-        -- ['parse_mode'] = tostring('HTML'),
-        -- ['disable_notification'] = tostring(false),
-        -- ['reply_to_message_id'] = tostring(0),
-        -- ['reply_markup'] = dkjson.encode({ ['inline_keyboard'] = { {  } } })
-    -- }
-    -- for k,v in pairs(defValues) do
-        -- if requestParameters[k] == nil then;    requestParameters[k] = v;   end
-    -- end
-    -- for key, value in ipairs(requestParameters) do
-        -- if (#requestParameters ~= 0) then
-            -- requestParameters[key] = tostring(value)
-        -- end
-    -- end
-
-    -- if (requestFile and next(requestFile) ~= nil) then
-        -- local fileType, fileName = next(requestFile)
-        -- local file = io.open(fileName, 'rb')
-        -- if file then
-            -- requestParameters[fileType] = {
-                -- filename = fileName,
-                -- data = file:read('*a')
-            -- }
-            -- file:close()
-        -- else
-            -- return false, 'io.open '..fileName..' = false'
-        -- end
-    -- end
-
-    -- local body, boundary = multipart.encode(requestParameters)
-
-    -- local thread = effil.thread(function (requestData, body, boundary)
-        -- local response = {}
-
-        -- local http  = require('ssl.https')
-        -- local ltn12 = require('ltn12')
-
-        -- local _, source = pcall(ltn12.source.string, body)
-        -- local _, sink   = pcall(ltn12.sink.table, response)
-
-        -- local result, _ = pcall(http.request, {
-                -- ['url']     = string.format('https://api.telegram.org/bot%s/%s', tostring(token), tostring(telegramMethod)),
-                -- ['method']  = 'POST',
-                -- ['headers'] = {
-                    -- ['Accept']          = '*/*',
-                    -- ['Accept-Encoding'] = 'gzip, deflate',
-                    -- ['Accept-Language'] = 'en-us',
-                    -- ['Content-Type']    = string.format('multipart/form-data; boundary=%s', tostring(boundary)),
-                    -- ['Content-Length']  = #body
-                -- },
-                -- ['source']  = source,
-                -- ['sink']    = sink
-        -- })
-        -- if (result) then;   return { true, response }
-        -- else;   return { false, response }
-        -- end
-    -- end)(requestData, body, boundary)
-    -- local result = thread:get(0)
-    -- while (not result) do
-        -- result = thread:get(0)
-        -- wait(0)
-    -- end
-    -- local status, error = thread:status()
-    -- if (not error) then
-        -- if (status == 'completed') then
-            -- local response = dkjson.decode(result[2][1])
-            -- if (result[1]) then
-                -- return true, 'fin'
-            -- else
-                -- return false, response
-            -- end
-        -- elseif (status ~= 'running' and status ~= 'completed') then
-            -- return false, status
-        -- end
-    -- else
-        -- return false, error
-    -- end
-    -- thread:cancel(0)
-    -- return true,'fin.'
--- end
-
 -- function setCharModel(ped, model)
     -- assert(doesCharExist(ped), 'ped not found')
     -- if not hasModelLoaded(model) then
@@ -683,4 +601,4 @@ end
     -- return CRadar_IsPointInsideRadar(ffi.new('struct CVector2D', {x, y}))
 -- end
 
-return foxlib
+return fl
