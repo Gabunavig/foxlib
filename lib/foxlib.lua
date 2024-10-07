@@ -1,4 +1,5 @@
 require ("moonloader")
+local dlstatus = require('moonloader').download_status
 local requests = require("requests")
 local memory = require("memory")
 local ffi = require ('ffi')
@@ -49,16 +50,27 @@ end
 
 function download_update()
     if download ~= "" then
-        local response = requests.get(download)
-        if response.status_code == 200 then
-            local file = io.open("moonloader\\lib\\foxlib.lua", "w")
-            file:write(response.text)
-            file:close()
-            sampAddChatMessage("Обновление завершено", -1)
-            -- script:reload()
-        end
-    else
+        sampAddChatMessage(download, -1)
+        -- local response = requests.get(download)
+		local fpath = os.getenv('TEMP') .. 'moonloader\\lib\\foxlib.lua'
+		downloadUrlToFile(download, fpath, download_handler)
+		sampAddChatMessage("Обновление начато", -1)
+        -- if response.status_code == 200 then
+            -- local file = io.open("moonloader\\lib\\foxlib.lua", "w")
+            -- file:write(response.text)
+            -- file:close()
+            -- sampAddChatMessage("Обновление завершено", -1)
+            -- -- script:reload()
+        -- end
     end
+end
+
+function download_handler(id, status, p1, p2)
+  if status == dlstatus.STATUS_DOWNLOADINGDATA then
+	sampAddChatMessage(string.format('Загружено %d из %d.', p1, p2), -1)
+  elseif status == dlstatus.STATUS_ENDDOWNLOADDATA then
+    sampAddChatMessage("Обновление завершено", -1)
+  end
 end
 
 function fl.test()
