@@ -24,7 +24,7 @@ function main()
         wait(0)
     end
 end
-
+ 
 function check_for_updates()
     local response = requests.get(json_url)
     if response.status_code == 200 then
