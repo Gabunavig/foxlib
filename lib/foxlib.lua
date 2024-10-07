@@ -29,11 +29,9 @@ end
 function check_for_updates()
     local response = requests.get(json_url)
     if response.status_code == 200 then
-		sampAddChatMessage(response.text, -1)
         local version_info = decodeJson(response.text)
         if version_info.version ~= nil and version_info.download ~= nil then
             if version_info.version ~= script_version then
-				sampAddChatMessage("Updates", -1)
                 download = version_info.download
                 download_update()
             end
