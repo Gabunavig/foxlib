@@ -20,7 +20,7 @@ local download = ""
 
 function main()
     while not isSampAvailable() do wait(0) end
-
+	check_for_updates()
     while true do
         wait(0)
     end
@@ -31,45 +31,32 @@ function check_for_updates()
     if response.status_code == 200 then
 		sampAddChatMessage(response.text, -1)
         local version_info = decodeJson(response.text)
-		sampAddChatMessage("Серверная версия: "..version_info['version'], -1)
         if version_info.version ~= nil and version_info.download ~= nil then
             if version_info.version ~= script_version then
-				sampAddChatMessage("Обновление найдено", -1)
                 download = version_info.download
                 download_update()
 			else
-				sampAddChatMessage("not version", -1)
             end
 		else
-			sampAddChatMessage("Nil", -1)
         end
 	else
-		sampAddChatMessage("not 200", -1)
     end
 end
 
 function download_update()
     if download ~= "" then
-        sampAddChatMessage(download, -1)
-        -- local response = requests.get(download)
-		local fpath = os.getenv('TEMP') .. 'moonloader\\lib\\foxlib.lua'
-		downloadUrlToFile(download, fpath, download_handler)
-		sampAddChatMessage("Обновление начато", -1)
-        -- if response.status_code == 200 then
-            -- local file = io.open("moonloader\\lib\\foxlib.lua", "w")
-            -- file:write(response.text)
-            -- file:close()
-            -- sampAddChatMessage("Обновление завершено", -1)
-            -- -- script:reload()
-        -- end
+        local response = requests.get(download)
+        if response.status_code == 200 then
+            local file = io.open("moonloader\\lib\\foxlib.lua", "w")
+            file:write(response.text)
+            file:close()
+        end
     end
 end
 
 function download_handler(id, status, p1, p2)
-  if status == dlstatus.STATUS_DOWNLOADINGDATA then
-	sampAddChatMessage(string.format('Загружено %d из %d.', p1, p2), -1)
-  elseif status == dlstatus.STATUS_ENDDOWNLOADDATA then
-    sampAddChatMessage("Обновление завершено", -1)
+  if status == dlstatus.STATUS_ENDDOWNLOADDATA then
+    script:reload()
   end
 end
 
