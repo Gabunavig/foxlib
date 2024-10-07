@@ -20,11 +20,14 @@ local download = ""
 
 function main()
     while not isSampAvailable() do wait(0) end
+
+    check_for_updates()
+    
     while true do
         wait(0)
     end
 end
- 
+  
 function check_for_updates()
     local response = requests.get(json_url)
     if response.status_code == 200 then
@@ -50,6 +53,10 @@ function download_update()
     end
 end
 
+function foxlib.test()
+    return script_version
+end
+
 function foxlib.inTable(arg, table, mode)
     if mode == 1 then 
         for k, v in pairs(table) do
@@ -68,17 +75,17 @@ function foxlib.inTable(arg, table, mode)
 end
 
 function foxlib.findInTable(table, text)
-	local items = {}
-	for k, v in pairs(table) do
-		if (('%s'):format(v):lower():find(ffi.string(text):lower(), nil, true)) then
-			table.insert(items, v)
-		end
-	end
-	if table.maxn(items) >= 1 then
-		return items
-	else 
-		return false
-	end
+    local items = {}
+    for k, v in pairs(table) do
+        if (('%s'):format(v):lower():find(ffi.string(text):lower(), nil, true)) then
+            table.insert(items, v)
+        end
+    end
+    if table.maxn(items) >= 1 then
+        return items
+    else 
+        return false
+    end
 end
 
 function foxlib.removeDuplicates(tbl)
@@ -96,22 +103,22 @@ function foxlib.removeDuplicates(tbl)
 end
 
 function foxlib.loadJson(filename)
-	local file = io.open(filename, r)
-	local items = {}
-	a = file:read("*a")
-	file:close()
-	tempitems = decodeJson(a)
-	for i, r in pairs(tempitems) do
-		table.insert(items, r)
-	end
-	return items
+    local file = io.open(filename, r)
+    local items = {}
+    a = file:read("*a")
+    file:close()
+    tempitems = decodeJson(a)
+    for i, r in pairs(tempitems) do
+        table.insert(items, r)
+    end
+    return items
 end
 
 function foxlib.saveJson(table, filename)
-	encodedTable = encodeJson(table)
-	local file = io.open(filename, "w")
-	file:write(encodedTable) 
-	file:close()
+    encodedTable = encodeJson(table)
+    local file = io.open(filename, "w")
+    file:write(encodedTable) 
+    file:close()
 end 
 
 function foxlib.currentFunctionName()
@@ -248,7 +255,7 @@ function foxlib.setSFConsoleState(bValue, sampVersion)
             -- ["R4"] = 0xA7220,
             -- ["R5"] = 0xA7210,
         },
-		setSecond = {
+        setSecond = {
             -- ["DLR1"] = 0xA6F50,
             ["R1"] = 0x12EBB,
             -- ["R2"] = 0xAD720,
@@ -526,13 +533,13 @@ end
 -- end
 
 -- function changeScreenPos()
-	-- local x, y = getCursorPos() 
-	-- if isKeyJustPressed(1) then 
-		-- return x, y
-	-- end
-	-- if isKeyJustPressed(27) then
-		-- return false
-	-- end
+    -- local x, y = getCursorPos() 
+    -- if isKeyJustPressed(1) then 
+        -- return x, y
+    -- end
+    -- if isKeyJustPressed(27) then
+        -- return false
+    -- end
 -- end
 
 -- function addDebugMessage(message, ...)
