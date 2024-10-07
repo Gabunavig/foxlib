@@ -1,8 +1,15 @@
+require "moonloader"
+local requests = require("requests")
+local json = require("json")
 local memory = require("memory")
 local ffi = require ('ffi')
 local sampfuncs = getModuleHandle("SampFuncs.asi")
 
 local foxlib = {}
+
+local json_url = "https://raw.githubusercontent.com/Gabunavig/foxlib/refs/heads/main/v.json"
+local script_version = "1"
+local download = ""
 
 -- local CPed_SetModelIndex = ffi.cast('void(__thiscall *)(void*, unsigned int)', 0x5E4880)
 
@@ -15,6 +22,31 @@ function main()
     while not isSampAvailable() do wait(0) end
     while true do
         wait(0)
+    end
+end
+
+function check_for_updates()
+    local response = requests.get(json_url)
+    if response.status_code == 200 then
+        local version_info = json.decode(response.text)
+        if version_info.version ~= nil and version_info.download ~= nil then
+            if version_info.version ~= script_version then
+                download = version_info.download
+                download_update()
+            end
+        end
+    end
+end
+
+function download_update()
+    if download ~= "" then
+        local response = requests.get(download)
+        if response.status_code == 200 then
+            local file = io.open("moonloader\\lib\\foxlib.lua", "w")
+            file:write(response.text)
+            file:close()
+        end
+    else
     end
 end
 
@@ -240,7 +272,7 @@ function foxlib.getNearestPedByPed(HndlPed, radius, minPlayerNear)
                 if not sampIsPlayerNpc(playerid) and playerid ~= -1 then 
                     local posX, posY, posZ = getCharCoordinates(player) 
                     for _,player1 in pairs(getAllChars()) do
-                        local playerid = select(2, sampGetPlayerIdByCharHandle(player1)) à
+                        local playerid = select(2, sampGetPlayerIdByCharHandle(player1)) Ã 
                         if not sampIsPlayerNpc(playerid) and playerid ~= -1 then 
                             local x,y,z = getCharCoordinates(player1)
                             if getDistanceBetweenCoords2d(x, y, posX, posY) < 2 then countPlayers = countPlayers + 1 end 
@@ -359,14 +391,14 @@ end
 
 -- function formatUnixTime(time, format)
     -- -- or use %B, but needs string.lower & change the ending
-    -- local month = {'ÿíâàðÿ','ôåâðàëÿ','ìàðòà','àïðåëÿ','ìàÿ','èþíÿ','èþëÿ','àâãóñòà','ñåíòÿáðÿ','îêòÿáðÿ','íîÿáðÿ','äåêàáðÿ'}
+    -- local month = {'Ã¿Ã­Ã¢Ã Ã°Ã¿','Ã´Ã¥Ã¢Ã°Ã Ã«Ã¿','Ã¬Ã Ã°Ã²Ã ','Ã Ã¯Ã°Ã¥Ã«Ã¿','Ã¬Ã Ã¿','Ã¨Ã¾Ã­Ã¿','Ã¨Ã¾Ã«Ã¿','Ã Ã¢Ã£Ã³Ã±Ã²Ã ','Ã±Ã¥Ã­Ã²Ã¿Ã¡Ã°Ã¿','Ã®ÃªÃ²Ã¿Ã¡Ã°Ã¿','Ã­Ã®Ã¿Ã¡Ã°Ã¿','Ã¤Ã¥ÃªÃ Ã¡Ã°Ã¿'}
     -- local forms = {
-        -- { 'sec', 'ñåêóíäó', 'ñåêóíäû', 'ñåêóíä' },
-        -- { 'min', 'ìèíóòó', 'ìèíóòû', 'ìèíóò' },
-        -- { 'hour', '÷àñ', '÷àñà', '÷àñîâ' },
-        -- { 'day', 'äåíü', 'äíÿ', 'äíåé' },
-        -- { 'month', 'ìåñÿö', 'ìåñÿöà', 'ìåñÿöåâ' },
-        -- { 'year', 'ãîä', 'ãîäà', 'ëåò' }
+        -- { 'sec', 'Ã±Ã¥ÃªÃ³Ã­Ã¤Ã³', 'Ã±Ã¥ÃªÃ³Ã­Ã¤Ã»', 'Ã±Ã¥ÃªÃ³Ã­Ã¤' },
+        -- { 'min', 'Ã¬Ã¨Ã­Ã³Ã²Ã³', 'Ã¬Ã¨Ã­Ã³Ã²Ã»', 'Ã¬Ã¨Ã­Ã³Ã²' },
+        -- { 'hour', 'Ã·Ã Ã±', 'Ã·Ã Ã±Ã ', 'Ã·Ã Ã±Ã®Ã¢' },
+        -- { 'day', 'Ã¤Ã¥Ã­Ã¼', 'Ã¤Ã­Ã¿', 'Ã¤Ã­Ã¥Ã©' },
+        -- { 'month', 'Ã¬Ã¥Ã±Ã¿Ã¶', 'Ã¬Ã¥Ã±Ã¿Ã¶Ã ', 'Ã¬Ã¥Ã±Ã¿Ã¶Ã¥Ã¢' },
+        -- { 'year', 'Ã£Ã®Ã¤', 'Ã£Ã®Ã¤Ã ', 'Ã«Ã¥Ã²' }
     -- }
 
     -- local formats = {
@@ -381,7 +413,7 @@ end
         -- end,
         -- ['D'] = function()
             -- local table_time = os.date('*t', time)
-            -- return ('%02d %s %d ã.'):format(table_time.day, month[table_time.month], table_time.year)
+            -- return ('%02d %s %d Ã£.'):format(table_time.day, month[table_time.month], table_time.year)
         -- end,
         -- ['f*'] = function()
             -- return ('%s, %s'):format(formatUnixTime(time, 'D'), formatUnixTime(time, 't'))
@@ -406,11 +438,11 @@ end
             -- end
 
             -- if diff < 0 then
-                -- return ('÷åðåç %s'):format(diff_str)
+                -- return ('Ã·Ã¥Ã°Ã¥Ã§ %s'):format(diff_str)
             -- elseif diff > 0 then
-                -- return ('%s íàçàä'):format(diff_str)
+                -- return ('%s Ã­Ã Ã§Ã Ã¤'):format(diff_str)
             -- end
-            -- return 'ñåé÷àñ'
+            -- return 'Ã±Ã¥Ã©Ã·Ã Ã±'
         -- end
     -- }
     -- return formats[format] and formats[format]() or nil
