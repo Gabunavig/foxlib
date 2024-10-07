@@ -20,7 +20,7 @@ local download = ""
 
 function main()
     while not isSampAvailable() do wait(0) end
-	check_for_updates()
+	
     while true do
         wait(0)
     end
@@ -33,39 +33,29 @@ function check_for_updates()
         local version_info = decodeJson(response.text)
         if version_info.version ~= nil and version_info.download ~= nil then
             if version_info.version ~= script_version then
+				sampAddChatMessage("Updates", -1)
                 download = version_info.download
                 download_update()
-			else
             end
-		else
         end
-	else
     end
 end
 
 function download_update()
     if download ~= "" then
-        local response = requests.get(download)
-        if response.status_code == 200 then
-            local file = io.open("moonloader\\lib\\foxlib.lua", "w")
-            file:write(response.text)
-            file:close()
-        end
+		local fpath = "moonloader\\lib\\foxlib.lua"
+		downloadUrlToFile(download, fpath, download_handler)
     end
 end
 
 function download_handler(id, status, p1, p2)
   if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-    script:reload()
+    reloadScripts()
   end
 end
 
 function fl.test()
     sampAddChatMessage(script_version, -1)
-end
-
-function fl.up()
-    check_for_updates()
 end
 
 -- function fl.inTable(arg, table, mode)
