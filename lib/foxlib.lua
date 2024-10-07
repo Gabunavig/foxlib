@@ -8,7 +8,7 @@ local sampfuncs = getModuleHandle("SampFuncs.asi")
 local foxlib = {}
 
 local json_url = "https://raw.githubusercontent.com/Gabunavig/foxlib/refs/heads/main/v.json"
-local script_version = "1"
+local script_version = "1.1"
 local download = ""
 
 -- local CPed_SetModelIndex = ffi.cast('void(__thiscall *)(void*, unsigned int)', 0x5E4880)
